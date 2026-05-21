@@ -21,7 +21,7 @@ router.get('/google/callback',
         );
 
         res.json({
-            message: 'Login via Google berhasil',
+            message: 'Google login successful',
             token,
             user: {
                 id: req.user.id,
