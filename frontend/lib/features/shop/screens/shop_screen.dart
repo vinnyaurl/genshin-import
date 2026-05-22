@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:frontend/core/widgets/bottom_navbar.dart';
 import 'package:frontend/core/widgets/item_card.dart';
+import 'package:frontend/features/profile/screens/profile_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../core/theme/app_theme.dart';
 import 'item_detail_screen.dart';
 
@@ -18,11 +21,27 @@ class _ShopScreenState extends State<ShopScreen> {
   List<dynamic> _items = [];
   bool _isLoading = true;
   String _errorMessage = '';
+
+  String _token = '';
+  String _username = 'Traveler';
+  bool _isAdmin = false;
+  int _balance = 9999999; 
+
   final Map<int, int> _purchaseCounts = {};
 
   @override
   void initState() {
     super.initState();
+    _loadUserData();
+  }
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _token = prefs.getString('token') ?? '';
+      _username = prefs.getString('username') ?? 'Traveler';
+      _isAdmin = prefs.getString('role') == 'admin';
+    });
+    
     _fetchWeapons();
   }
 
@@ -39,18 +58,27 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Future<void> _fetchWeapons() async {
+    if (_token.isEmpty) return; 
+
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
+    
     try {
-      final url = Uri.parse('http://10.0.2.2:3000/api/weapons'); 
-      final response = await http.get(url);
+      final url = Uri.parse('http://10.0.2.2:3000/weapons'); 
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          _items = data['data'] ?? data; 
+          _items = data; 
           _isLoading = false;
         });
       } else {
@@ -61,7 +89,7 @@ class _ShopScreenState extends State<ShopScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Cannot connect to server. Is backend running?';
+        _errorMessage = 'Cannot connect to server.';
         _isLoading = false;
       });
     }
@@ -69,26 +97,37 @@ class _ShopScreenState extends State<ShopScreen> {
 
   Future<void> _handleDirectBuy(int id, String name) async {
     try {
-      final url = Uri.parse('http://10.0.2.2:3000/api/weapons/$id/buy');
-      final response = await http.post(url, headers: {'Content-Type': 'application/json'});
+      final url = Uri.parse('http://10.0.2.2:3000/weapons/$id/buy');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({
+          'quantity': 1
+        }),
+      );
+
+      final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (mounted) {
           setState(() {
             _purchaseCounts[id] = (_purchaseCounts[id] ?? 0) + 1;
+            _balance = data['remaining_balance'] ?? _balance;
           });
 
-          ScaffoldMessenger.of(context).hideCurrentSnackBar(); 
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Successfully purchased ${_purchaseCounts[id]} x $name!'), 
+              content: Text('Successfully purchased ${_purchaseCounts[id]} x $name!'),
               backgroundColor: AppColors.successGreen,
             ),
           );
           _fetchWeapons(); 
         }
       } else {
-        final data = jsonDecode(response.body);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(data['message'] ?? 'Failed to buy item'), backgroundColor: AppColors.errorRed),
@@ -110,11 +149,16 @@ class _ShopScreenState extends State<ShopScreen> {
       backgroundColor: AppColors.bgLightBlue, 
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _selectedIndex,
-        isAdmin: false, 
+        isAdmin: _isAdmin, 
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          if (index == 1) { 
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            ).then((_) {
+              _fetchWeapons();
+            });
+          }
         },
       ),
       body: SafeArea(
@@ -137,7 +181,7 @@ class _ShopScreenState extends State<ShopScreen> {
                     children: [
                       Text('Genshin Import', style: AppTheme.headerStyle.copyWith(fontSize: 24, color: AppColors.primaryAmberDark)),
                       const SizedBox(height: 4),
-                      const Text('Welcome, Traveler!', style: TextStyle(color: Color(0xFFA0AEC0), fontSize: 13)),
+                      Text('Welcome, $_username!', style: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 13)),
                     ],
                   ),
                   Row(
@@ -145,7 +189,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       const Icon(Icons.monetization_on, color: AppColors.primaryAmberLight, size: 20),
                       const SizedBox(width: 4),
                       Text(
-                        _formatCurrency(100000), 
+                        _formatCurrency(_balance),
                         style: TextStyle(color: AppColors.primaryAmberLight.withValues(alpha: 0.9), fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ],

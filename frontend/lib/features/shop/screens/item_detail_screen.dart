@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -19,6 +20,7 @@ class ItemDetailScreen extends StatefulWidget {
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
   bool _isLoading = false;
+
   String _formatPrice(int value) {
     String str = value.toString();
     String result = '';
@@ -33,9 +35,32 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   Future<void> _handleBuyItem(int id) async {
     setState(() => _isLoading = true);
+    
     try {
-      final url = Uri.parse('http://10.0.2.2:3000/api/weapons/$id/buy');
-      final response = await http.post(url, headers: {'Content-Type': 'application/json'});
+      final prefs = await SharedPreferences.getInstance();
+      final String token = prefs.getString('token') ?? '';
+
+      if (token.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Authentication error. Please login again.'), backgroundColor: AppColors.errorRed),
+          );
+          setState(() => _isLoading = false);
+        }
+        return;
+      }
+
+      final url = Uri.parse('http://10.0.2.2:3000/weapons/$id/buy');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token', 
+        },
+        body: jsonEncode({
+          'quantity': 1 
+        }),
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (mounted) {
@@ -124,7 +149,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _formatPrice(price), 
+                      _formatPrice(price),
                       style: TextStyle(
                         color: isOutOfStock ? Colors.grey : AppColors.primaryAmberLight,
                         fontWeight: FontWeight.bold,
