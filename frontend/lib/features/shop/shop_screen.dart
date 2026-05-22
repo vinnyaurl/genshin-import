@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:frontend/core/widgets/bottom_navbar.dart';
 import 'package:frontend/core/widgets/item_card.dart';
-import 'package:frontend/features/profile/screens/profile_screen.dart';
+import 'package:frontend/features/profile/profile_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/theme/app_theme.dart';
+import '../../core/theme/app_theme.dart';
 import 'item_detail_screen.dart';
 
 class ShopScreen extends StatefulWidget {

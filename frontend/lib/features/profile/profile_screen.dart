@@ -5,8 +5,8 @@ import 'package:frontend/core/widgets/bottom_navbar.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/theme/app_theme.dart';
-import '../../auth/screens/login_screen.dart'; 
+import '../../core/theme/app_theme.dart';
+import '../auth/login_screen.dart'; 
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

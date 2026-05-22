@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/custom_button.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/widgets/custom_button.dart';
 
 class ItemDetailScreen extends StatefulWidget {
   final Map<String, dynamic> item;
