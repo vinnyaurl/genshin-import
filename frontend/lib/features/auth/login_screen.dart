@@ -1,55 +1,69 @@
 import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:frontend/features/shop/shop_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/custom_button.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/widgets/custom_button.dart';
+import 'register_screen.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
 
-  Future<void> _handleRegister() async {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       
       try {
-        final url = Uri.parse('http://10.0.2.2:3000/auth/register');
+        final url = Uri.parse('http://10.0.2.2:3000/auth/login'); 
         
         final response = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'username': _nameController.text.trim(),
-            'email': _emailController.text.trim(),
+            'email': _emailController.text.trim(), 
             'password': _passwordController.text,
           }),
         );
 
-        if (response.statusCode == 201 || response.statusCode == 200) {
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          
+          final String token = data['token']; 
+          final String username = data['user']['username'];
+          final String role = data['user']['role'];
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', token);
+          await prefs.setString('username', username);
+          await prefs.setString('role', role);
+          
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Registration Successful! Welcome to Celestia.'), backgroundColor: AppColors.successGreen),
+              const SnackBar(content: Text('Login Successful!'), backgroundColor: AppColors.successGreen),
             );
-            Navigator.pop(context); 
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ShopScreen()),
+            );
           }
         } else {
           final data = jsonDecode(response.body);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(data['message'] ?? 'Registration failed.'), backgroundColor: AppColors.errorRed),
+              SnackBar(content: Text(data['message'] ?? 'Login failed.'), backgroundColor: AppColors.errorRed),
             );
           }
         }
@@ -67,17 +81,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent, 
+      backgroundColor: Colors.transparent,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -112,24 +124,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text('Register', style: AppTheme.headerStyle.copyWith(fontSize: 32, color: AppColors.primaryAmberDark)),
+                            Text('Genshin Import', style: AppTheme.headerStyle.copyWith(fontSize: 32, color: AppColors.primaryAmberDark)),
                             const SizedBox(height: 12),
-                            const Text('Begin your journey across the stars!', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFA0AEC0), fontSize: 15, fontWeight: FontWeight.w500)),
+                            const Text('Acquire resources for your journey!', style: TextStyle(color: Color(0xFFA0AEC0), fontSize: 16, fontWeight: FontWeight.w500)),
                             const SizedBox(height: 40),
-
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Traveler Name', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
-                                const SizedBox(height: 8),
-                                TextFormField(
-                                  controller: _nameController,
-                                  decoration: const InputDecoration(hintText: 'Min. 2 characters'),
-                                  validator: (value) => (value == null || value.length < 2) ? 'Name must be at least 2 characters' : null,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
 
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
-                                  decoration: const InputDecoration(hintText: 'e.g. traveler@teyvat.com'),
+                                  decoration: const InputDecoration(hintText: 'Enter your email'),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) return 'Email cannot be empty';
                                     if (!value.contains('@')) return 'Enter a valid email';
@@ -148,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 24),
 
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,44 +156,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: true,
-                                  decoration: const InputDecoration(hintText: 'Create password'),
-                                  validator: (value) => (value == null || value.length < 6) ? 'Password must be at least 6 characters' : null,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Confirm Password', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
-                                const SizedBox(height: 8),
-                                TextFormField(
-                                  controller: _confirmPasswordController,
-                                  obscureText: true,
-                                  decoration: const InputDecoration(hintText: 'Repeat password'),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) return 'Please confirm your password';
-                                    if (value != _passwordController.text) return 'Passwords do not match';
-                                    return null;
-                                  },
+                                  decoration: const InputDecoration(hintText: 'Enter your password'),
+                                  validator: (value) => value!.isEmpty ? 'Password cannot be empty' : null,
                                 ),
                               ],
                             ),
                             const SizedBox(height: 40),
 
-                            CustomButton(text: 'Register', isLoading: _isLoading, onPressed: _handleRegister),
+                            CustomButton(text: 'Login', isLoading: _isLoading, onPressed: _handleLogin),
+                            
                             const SizedBox(height: 24),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Text("Already have an account? ", style: TextStyle(color: Color(0xFFA0AEC0), fontSize: 13, fontWeight: FontWeight.w500)),
+                                const Text("Don't have an account? ", style: TextStyle(color: Color(0xFFA0AEC0), fontSize: 13, fontWeight: FontWeight.w500)),
                                 GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  child: const Text('Login here', style: TextStyle(color: AppColors.primaryAmberDark, fontWeight: FontWeight.bold, fontSize: 13)),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterScreen())),
+                                  child: const Text('Register here', style: TextStyle(color: AppColors.primaryAmberDark, fontWeight: FontWeight.w900, fontSize: 13)),
                                 ),
                               ],
                             ),
+                            
+                            const SizedBox(height: 32),
+                            Row(
+                              children: [
+                                const Expanded(child: Divider(color: Color(0xFFE2E8F0), thickness: 1)),
+                                const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('Or continue with', style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.bold))),
+                                const Expanded(child: Divider(color: Color(0xFFE2E8F0), thickness: 1)),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildSocialButton(child: RichText(text: const TextSpan(style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold), children: [
+                                  TextSpan(text: 'G', style: TextStyle(color: Color(0xFF4285F4))), TextSpan(text: 'o', style: TextStyle(color: Color(0xFFEA4335))), TextSpan(text: 'o', style: TextStyle(color: Color(0xFFFBBC05))), TextSpan(text: 'g', style: TextStyle(color: Color(0xFF4285F4))), TextSpan(text: 'l', style: TextStyle(color: Color(0xFF34A853))), TextSpan(text: 'e', style: TextStyle(color: Color(0xFFEA4335))),
+                                ]))),
+                                _buildSocialButton(child: const Text('Facebook', style: TextStyle(color: Color(0xFF5856D6), fontSize: 13, fontWeight: FontWeight.bold))),
+                                _buildSocialButton(child: const Text('Twitter', style: TextStyle(color: Color(0xFF1DA1F2), fontSize: 13, fontWeight: FontWeight.bold))),
+                              ],
+                            )
                           ],
                         ),
                       ),
@@ -207,6 +207,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSocialButton({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(25), border: Border.all(color: const Color(0xFFE2E8F0))),
+      child: child,
     );
   }
 }
