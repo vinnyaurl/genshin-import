@@ -186,14 +186,37 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                             const SizedBox(height: 24),
+                            
+                            // HANYA TOMBOL GOOGLE TERSISA DI SINI
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center, // Ubah ke center karena cuma ada 1 tombol
                               children: [
-                                _buildSocialButton(child: RichText(text: const TextSpan(style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold), children: [
-                                  TextSpan(text: 'G', style: TextStyle(color: Color(0xFF4285F4))), TextSpan(text: 'o', style: TextStyle(color: Color(0xFFEA4335))), TextSpan(text: 'o', style: TextStyle(color: Color(0xFFFBBC05))), TextSpan(text: 'g', style: TextStyle(color: Color(0xFF4285F4))), TextSpan(text: 'l', style: TextStyle(color: Color(0xFF34A853))), TextSpan(text: 'e', style: TextStyle(color: Color(0xFFEA4335))),
-                                ]))),
-                                _buildSocialButton(child: const Text('Facebook', style: TextStyle(color: Color(0xFF5856D6), fontSize: 13, fontWeight: FontWeight.bold))),
-                                _buildSocialButton(child: const Text('Twitter', style: TextStyle(color: Color(0xFF1DA1F2), fontSize: 13, fontWeight: FontWeight.bold))),
+                                GestureDetector(
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Google Login is coming soon! Please use email login.'),
+                                        backgroundColor: AppColors.primaryAmberDark,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  },
+                                  child: _buildSocialButton(
+                                    child: RichText(
+                                      text: const TextSpan(
+                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                        children: [
+                                          TextSpan(text: 'G', style: TextStyle(color: Color(0xFF4285F4))),
+                                          TextSpan(text: 'o', style: TextStyle(color: Color(0xFFEA4335))),
+                                          TextSpan(text: 'o', style: TextStyle(color: Color(0xFFFBBC05))),
+                                          TextSpan(text: 'g', style: TextStyle(color: Color(0xFF4285F4))),
+                                          TextSpan(text: 'l', style: TextStyle(color: Color(0xFF34A853))),
+                                          TextSpan(text: 'e', style: TextStyle(color: Color(0xFFEA4335))),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ],
                             )
                           ],
@@ -212,8 +235,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildSocialButton({required Widget child}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(25), border: Border.all(color: const Color(0xFFE2E8F0))),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12), // Perlebar sedikit padding horizontalnya agar tombol tidak terlalu mungil
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9), 
+        borderRadius: BorderRadius.circular(25), 
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 2))], // Tambah sedikit shadow agar terlihat "clickable"
+      ),
       child: child,
     );
   }
