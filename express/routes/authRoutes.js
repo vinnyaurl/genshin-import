@@ -8,6 +8,7 @@ const verifyToken = require('../middleware/auth');
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.get('/profile', verifyToken, authController.getProfile);
+router.post('/google/token', authController.googleTokenLogin);
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 

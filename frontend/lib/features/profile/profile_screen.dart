@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:frontend/core/widgets/bottom_navbar.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,8 +15,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int _selectedIndex = 1; 
-
   bool _isLoading = true;
   String _token = '';
   String _username = 'Loading...';
@@ -84,7 +81,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-
   String _formatCurrency(int value) {
     String str = value.toString();
     String result = '';
@@ -92,7 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     for (int i = str.length - 1; i >= 0; i--) {
       count++;
       result = str[i] + result;
-      if (count % 3 == 0 && i != 0) result = ',' + result;
+      if (count % 3 == 0 && i != 0) result = ',$result';
     }
     return result;
   }
@@ -118,15 +114,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, 
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _selectedIndex,
-        isAdmin: _isAdmin,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pop(context); 
-          }
-        },
-      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -242,7 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                               decoration: BoxDecoration(color: AppColors.primaryAmberLight.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                                               child: Text(
-                                                _authProvider[0].toUpperCase() + _authProvider.substring(1),
+                                                _authProvider.isNotEmpty ? _authProvider[0].toUpperCase() + _authProvider.substring(1) : 'Unknown',
                                                 style: const TextStyle(color: AppColors.primaryAmberDark, fontWeight: FontWeight.bold, fontSize: 13),
                                               ),
                                             ),

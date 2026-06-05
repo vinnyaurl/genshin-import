@@ -39,16 +39,14 @@ class ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isOutOfStock = stock <= 0;
 
-    Widget imageWidget = AspectRatio(
-      aspectRatio: 1 / 1, 
-      child: Container(
-        color: const Color(0xFFF8FAFC),
-        padding: const EdgeInsets.all(8),
-        child: Image.network(
-          image,
-          fit: BoxFit.contain, 
-          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, color: Colors.black26, size: 40),
-        ),
+    Widget imageWidget = Container(
+      color: const Color(0xFFF8FAFC),
+      padding: const EdgeInsets.all(8),
+      alignment: Alignment.center,
+      child: Image.network(
+        image,
+        fit: BoxFit.contain, 
+        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, color: Colors.black26, size: 40),
       ),
     );
 
@@ -71,57 +69,71 @@ class ItemCard extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            GestureDetector(
-              onTap: onCardTap,
-              behavior: HitTestBehavior.opaque,
-              child: Column(
-                children: [
-                  imageWidget,
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        child: GestureDetector( 
+          onTap: onCardTap,
+          behavior: HitTestBehavior.opaque,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: imageWidget,
+              ),
+              
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(type, style: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
-                        Text(type, style: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 12)),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Stock:', style: TextStyle(fontSize: 11)),
-                            Text(stock.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isOutOfStock ? AppColors.errorRed : AppColors.primaryAmberDark)),
-                          ],
-                        ),
+                        const Text('Stock:', style: TextStyle(fontSize: 11)),
+                        Text(stock.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isOutOfStock ? AppColors.errorRed : AppColors.primaryAmberDark)),
                       ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const Spacer(),
-            // Tombol Buy
-            AbsorbPointer(
-              absorbing: isOutOfStock,
-              child: GestureDetector(
-                onTap: onBuyTap,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isOutOfStock ? AppColors.errorRed : AppColors.primaryAmberDark,
-                  ),
-                  child: Center(
-                    child: Text(
-                      isOutOfStock ? 'OUT OF STOCK' : _formatPrice(price),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+              
+              AbsorbPointer(
+                absorbing: isOutOfStock,
+                child: GestureDetector(
+                  onTap: onBuyTap,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: isOutOfStock
+                          ? null
+                          : const LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [Color(0xFFFBBF24), Color(0xFFD97706)],
+                            ),
+                      color: isOutOfStock ? AppColors.errorRed : null,
+                    ),
+                    child: Center(
+                      child: isOutOfStock 
+                          ? const Text('OUT OF STOCK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center, 
+                              children: [
+                                const Icon(Icons.monetization_on, color: Colors.white, size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _formatPrice(price),
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                              ],
+                            ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

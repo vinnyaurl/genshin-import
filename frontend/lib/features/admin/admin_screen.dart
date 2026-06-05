@@ -98,7 +98,7 @@ class _AdminScreenState extends State<AdminScreen> {
           'type': selectedType,
           'description': descController.text.trim(),
           'stock': int.parse(stockController.text),
-          'price': double.parse(priceController.text).toInt(), // Backend butuh integer
+          'price': double.parse(priceController.text).toInt(),
           'image': imageController.text.trim(),
         }),
       );
@@ -280,6 +280,10 @@ class _AdminScreenState extends State<AdminScreen> {
                 const SizedBox(height: 16),
                 _buildModalField(nameController, 'Item Name (Min. 3 characters)'),
                 const SizedBox(height: 10),
+                
+                _buildModalField(descController, 'Item Description...', maxLines: 3),
+                const SizedBox(height: 10),
+
                 Row(
                   children: [
                     Expanded(
@@ -328,9 +332,11 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  Widget _buildModalField(TextEditingController controller, String hint, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildModalField(TextEditingController controller, String hint, {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
     return TextField(
-      controller: controller, keyboardType: keyboardType,
+      controller: controller, 
+      keyboardType: keyboardType,
+      maxLines: maxLines, 
       style: GoogleFonts.lora(fontSize: 13, color: AppColors.textPrimary),
       decoration: InputDecoration(
         hintText: hint,
