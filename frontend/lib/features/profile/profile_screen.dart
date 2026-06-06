@@ -20,7 +20,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _username = 'Loading...';
   int _balance = 0;
   String _authProvider = 'Manual'; 
-  bool _isAdmin = false;
 
   @override
   void initState() {
@@ -40,7 +39,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     setState(() {
       _token = token;
-      _isAdmin = role == 'admin';
     });
 
     try {
