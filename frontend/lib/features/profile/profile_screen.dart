@@ -30,7 +30,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchUserProfile() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
-    final role = prefs.getString('role') ?? 'user';
 
     if (token.isEmpty) {
       _forceLogout();
