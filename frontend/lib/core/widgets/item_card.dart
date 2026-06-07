@@ -41,7 +41,7 @@ class ItemCard extends StatelessWidget {
 
     Widget imageWidget = Container(
       color: const Color(0xFFF8FAFC),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(4), 
       alignment: Alignment.center,
       child: Image.network(
         image,
@@ -76,25 +76,29 @@ class ItemCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
+                flex: 5,
                 child: imageWidget,
               ),
               
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text(type, style: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 12)),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Stock:', style: TextStyle(fontSize: 11)),
-                        Text(stock.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isOutOfStock ? AppColors.errorRed : AppColors.primaryAmberDark)),
-                      ],
-                    ),
-                  ],
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Jarak terbagi rapi otomatis
+                    children: [
+                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(type, style: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Stock:', style: TextStyle(fontSize: 10)),
+                          Text(stock.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: isOutOfStock ? AppColors.errorRed : AppColors.primaryAmberDark)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               
@@ -103,7 +107,7 @@ class ItemCard extends StatelessWidget {
                 child: GestureDetector(
                   onTap: onBuyTap,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
                       gradient: isOutOfStock
                           ? null
@@ -116,15 +120,15 @@ class ItemCard extends StatelessWidget {
                     ),
                     child: Center(
                       child: isOutOfStock 
-                          ? const Text('OUT OF STOCK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))
+                          ? const Text('OUT OF STOCK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center, 
                               children: [
-                                const Icon(Icons.monetization_on, color: Colors.white, size: 16),
+                                const Icon(Icons.monetization_on, color: Colors.white, size: 14),
                                 const SizedBox(width: 4),
                                 Text(
                                   _formatPrice(price),
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                                 ),
                               ],
                             ),

@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:frontend/core/widgets/bottom_navbar.dart';
-import 'package:frontend/core/widgets/item_card.dart';
-import 'package:frontend/features/profile/profile_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/theme/app_theme.dart';
+import 'package:frontend/core/widgets/bottom_navbar.dart';
+import 'package:frontend/core/widgets/item_card.dart';
+import 'package:frontend/features/profile/profile_screen.dart';
 import 'item_detail_screen.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -17,32 +17,92 @@ class ShopScreen extends StatefulWidget {
 }
 
 class _ShopScreenState extends State<ShopScreen> {
-  int _selectedIndex = 0; 
+  int _currentIndex = 0;
+
+  final List<Widget> _pages = [
+    const _ShopMainContent(),
+    const ProfileScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: _currentIndex,
+        isAdmin: false, 
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
+    );
+  }
+}
+
+class _ShopMainContent extends StatefulWidget {
+  const _ShopMainContent();
+
+  @override
+  State<_ShopMainContent> createState() => _ShopMainContentState();
+}
+
+class _ShopMainContentState extends State<_ShopMainContent> {
   List<dynamic> _items = [];
   bool _isLoading = true;
   String _errorMessage = '';
 
   String _token = '';
   String _username = 'Traveler';
-  bool _isAdmin = false;
-  int _balance = 9999999; 
+  int _balance = 0; 
 
   final Map<int, int> _purchaseCounts = {};
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _initData();
   }
-  Future<void> _loadUserData() async {
+
+  Future<void> _initData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _token = prefs.getString('token') ?? '';
       _username = prefs.getString('username') ?? 'Traveler';
-      _isAdmin = prefs.getString('role') == 'admin';
     });
     
+    _fetchProfileBalance();
     _fetchWeapons();
+  }
+
+  Future<void> _fetchProfileBalance() async {
+    if (_token.isEmpty) return;
+
+    try {
+      final url = Uri.parse('http://10.0.2.2:3000/auth/profile');
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (mounted) {
+          setState(() {
+            _balance = data['balance'] ?? 0;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch balance: $e');
+    }
   }
 
   String _formatCurrency(int value) {
@@ -52,7 +112,7 @@ class _ShopScreenState extends State<ShopScreen> {
     for (int i = str.length - 1; i >= 0; i--) {
       count++;
       result = str[i] + result;
-      if (count % 3 == 0 && i != 0) result = ',' + result;
+      if (count % 3 == 0 && i != 0) result = ',$result';
     }
     return result;
   }
@@ -115,7 +175,7 @@ class _ShopScreenState extends State<ShopScreen> {
         if (mounted) {
           setState(() {
             _purchaseCounts[id] = (_purchaseCounts[id] ?? 0) + 1;
-            _balance = data['remaining_balance'] ?? _balance;
+            _balance = data['remaining_balance'] ?? _balance; 
           });
 
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -126,6 +186,7 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
           );
           _fetchWeapons(); 
+          _fetchProfileBalance(); 
         }
       } else {
         if (mounted) {
@@ -147,20 +208,6 @@ class _ShopScreenState extends State<ShopScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgLightBlue, 
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _selectedIndex,
-        isAdmin: _isAdmin, 
-        onTap: (index) {
-          if (index == 1) { 
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
-            ).then((_) {
-              _fetchWeapons();
-            });
-          }
-        },
-      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -200,7 +247,10 @@ class _ShopScreenState extends State<ShopScreen> {
             Expanded(
               child: RefreshIndicator(
                 color: AppColors.primaryAmberDark,
-                onRefresh: _fetchWeapons,
+                onRefresh: () async {
+                  await _fetchProfileBalance();
+                  await _fetchWeapons();
+                },
                 child: _buildBodyContent(),
               ),
             ),
@@ -222,7 +272,10 @@ class _ShopScreenState extends State<ShopScreen> {
             Text(_errorMessage, style: const TextStyle(color: AppColors.errorRed)),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _fetchWeapons,
+              onPressed: () {
+                _fetchProfileBalance();
+                _fetchWeapons();
+              },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryAmberDark),
               child: const Text('Try Again', style: TextStyle(color: Colors.white)),
             )
@@ -268,6 +321,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 ),
               );
               _fetchWeapons();
+              _fetchProfileBalance(); 
             }
           },
           onBuyTap: () => _handleDirectBuy(itemId, itemName),
