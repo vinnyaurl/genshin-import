@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "907396831373",
+    "project_id": "genshin-import-a0331",
+    "storage_bucket": "genshin-import-a0331.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:907396831373:android:2b49c5d46a80144a5a2ac4",
+        "android_client_info": {
+          "package_name": "com.example.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHJ_5Dv5A1dIN99Bsi5CKcpVPy7tDZcjE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
